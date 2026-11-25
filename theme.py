@@ -1,5 +1,5 @@
 """
-Elvaerwyns MH2 Official Theme Engine (INI-Configurable QSS)
+Elvaerwyns MH2 Official Theme Engine V1.1 (INI-Configurable QSS)
 Saves theme.ini inside <active_data_folder>/themes/theme.ini
 Contributed by Elvaerwyn_MH2 2026
 """
@@ -25,7 +25,9 @@ PRESETS = {
         "panel_dark": "#323232",
         "text_color": "#FFFFFF",
         "btn_text": "#000000",
-        "font_size": "13",
+        "font_size": "14",
+        "font_family": "Helvetica, Arial, sans-serif",
+        "font_size": "14",
         "border_width": "3",
         "border_radius": "8",
     },
@@ -43,7 +45,9 @@ PRESETS = {
         "panel_dark": "#292333",
         "text_color": "#FFFFFF",
         "btn_text": "#000000",
-        "font_size": "13",
+        "font_size": "14",
+        "font_family": "Helvetica, Arial, sans-serif",
+        "font_size": "14",
         "border_width": "3",
         "border_radius": "8",
     },
@@ -61,7 +65,9 @@ PRESETS = {
         "panel_dark": "#202c30",
         "text_color": "#FFFFFF",
         "btn_text": "#000000",
-        "font_size": "13",
+        "font_size": "14",
+        "font_family": "Helvetica, Arial, sans-serif",
+        "font_size": "14",
         "border_width": "3",
         "border_radius": "8",
     },
@@ -79,7 +85,9 @@ PRESETS = {
         "panel_dark": "#2d2d30",
         "text_color": "#E0E0E0",
         "btn_text": "#000000",
-        "font_size": "13",
+        "font_size": "14",
+        "font_family": "Helvetica, Arial, sans-serif",
+        "font_size": "14",
         "border_width": "1",
         "border_radius": "4",
     },
@@ -89,6 +97,7 @@ PRESETS = {
 QSS_TEMPLATE = """
 QMainWindow, QDialog {{
     color: {text_color};
+    font-family: {font_family};
     font-weight: bold;
     font-size: {font_size}px;
     background: qradialgradient(cx: 0.5, cy: 0.5, radius: 1.0, fx: 0.5, fy: 0.5,
@@ -97,11 +106,14 @@ QMainWindow, QDialog {{
                 stop: 1 {bg_edge});
 }}
 
+
 QWidget {{
     color: {text_color};
+    font-family: {font_family};
     font-weight: bold;
     font-size: {font_size}px;
 }}
+
 
 QScrollArea, QWidget#qt_scrollarea_viewport {{
     background: transparent;
@@ -272,6 +284,36 @@ QProgressBar::chunk {{
     background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
                 stop:0 {panel_dark}, stop:0.2 {panel_center}, stop:0.5 {accent}, stop:1 {panel_dark});
     border-radius: 5px;
+}}
+
+QSlider::groove:horizontal {{
+    border: 2px solid {panel_center};
+    height: 10px;
+    background: #141414;
+    border-radius: 5px;
+}}
+
+QSlider::sub-page:horizontal {{
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0,
+                stop:0 {accent_dark}, stop:1 {accent});
+    border: 1px solid {accent};
+    height: 10px;
+    border-radius: 5px;
+}}
+
+QSlider::handle:horizontal {{
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1,
+                stop:0 #ffffff, stop:0.5 #e0e0e0, stop:1 #ffffff);
+    border: 2px solid {accent};
+    width: 16px;
+    height: 18px;
+    margin: -6px 0;
+    border-radius: 5px;
+}}
+
+QSlider::handle:horizontal:hover {{
+    background: {accent_bright};
+    border: 2px solid #ffffff;
 }}
 
 QScrollBar:vertical {{

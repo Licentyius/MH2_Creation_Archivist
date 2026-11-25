@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Community Archive Downloader V5.0sa - Elvaerwyn_MH2 2026
+MakeHuman 2 Community Archive Downloader V5.1sa - Elvaerwyn_MH2 2026
 Completely Independent Visual Content Browser, Search Engine, Cart & Favorites Matrix
 """
 
@@ -18,6 +18,8 @@ from PySide6.QtWidgets import (
     QFrame, QComboBox, QApplication, QMessageBox, QGroupBox, 
     QStyle, QDockWidget, QTabWidget, QCheckBox
 )
+from mh2_standalone_core import PanZoomImageViewer
+
 
 def safe_urlopen(req, timeout=15):
     """Attempts verified HTTPS (including Windows Root CA store), with fallback for Steam/AV cert bundles."""
@@ -378,18 +380,10 @@ class MH2AssetBrowserPanel(QWidget):
         
         self.inspect_tabs = QTabWidget()
         
-        # Tab A: Scroll-Backed High-Resolution Visual Workspace Canvas
-        self.image_viewer_scroll = QScrollArea()
-        self.image_viewer_scroll.setWidgetResizable(True)
-        self.image_viewer_scroll.setAlignment(Qt.AlignCenter)
-        self.image_viewer_scroll.setStyleSheet("background-color: rgba(0, 0, 0, 80); border: 1px solid #444444; border-radius: 4px;")
-        
-        self.preview_canvas = QLabel()
-        self.preview_canvas.setAlignment(Qt.AlignCenter)
-        self.preview_canvas.setText("Select an item card to inspect properties.")
-        self.preview_canvas.setStyleSheet("color: #777777; background: transparent; border: none;")
-        self.image_viewer_scroll.setWidget(self.preview_canvas)
-        self.inspect_tabs.addTab(self.image_viewer_scroll, "🔍 Inspection Image")
+        # Tab A: Interactive Pan & Zoom Visual Workspace Canvas
+        self.preview_canvas = PanZoomImageViewer("Select an item card to inspect properties.\n(Wheel = Zoom • Drag = Pan • Double-Click = Reset)", min_height=180)
+        self.inspect_tabs.addTab(self.preview_canvas, "🔍 Inspection Image")
+
         
         # Tab B: Monospace Metadata Registry Logs Stream
         self.meta_display = QTextEdit()
@@ -750,11 +744,8 @@ class MH2AssetBrowserPanel(QWidget):
             high_res_pixmap = asset_card.thumb_label.pixmap()
 
         if high_res_pixmap and not high_res_pixmap.isNull():
-            available_w = max(self.image_viewer_scroll.viewport().width() - 15, 480)
-            available_h = max(self.image_viewer_scroll.viewport().height() - 15, 340)
-            self.preview_canvas.setPixmap(high_res_pixmap.scaled(
-                available_w, available_h, Qt.KeepAspectRatio, Qt.SmoothTransformation
-            ))
+            self.preview_canvas.setPixmap(high_res_pixmap)
+
         else:
             self.preview_canvas.clear()
             self.preview_canvas.setText("📦 Pack Staged\n[No Preview Cache discovered]")

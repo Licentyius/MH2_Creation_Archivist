@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QPushButton, QFileDialog, QMessageBox, QGroupBox, 
     QComboBox, QTextEdit, QListWidget, QDockWidget, QCheckBox, QApplication
 )
+from mh2_standalone_core import PanZoomImageViewer
 
 # --- EXPANDED ASSET PARSING INDEX MAPS ---
 CATEGORY_MAP = {
@@ -234,11 +235,9 @@ class MH2CreatorPortalPanel:
             preview_group = QGroupBox("Asset Thumbnail Preview")
             preview_layout = QVBoxLayout()
             preview_layout.setAlignment(Qt.AlignCenter)
-            self.image_preview_canvas = QLabel("No thumbnail detected.\nPlace a file containing 'thumb' or 'preview' in the folder.")
-            self.image_preview_canvas.setAlignment(Qt.AlignCenter)
-            self.image_preview_canvas.setStyleSheet("color: #888888; font-size: 11px; font-style: italic; border: 2px dashed #3A3A3A; background-color: #151515; border-radius: 4px; min-height: 120px; max-height: 160px;")
-            self.image_preview_canvas.setWordWrap(True)
+            self.image_preview_canvas = PanZoomImageViewer("No thumbnail detected.\nPlace a file containing 'thumb' or 'preview' in the folder.", min_height=130)
             preview_layout.addWidget(self.image_preview_canvas)
+
             preview_group.setLayout(preview_layout)
             layout.addWidget(preview_group)
 
@@ -657,10 +656,8 @@ class MH2CreatorPortalPanel:
         if manual_refresh and bundle["thumbnail"] and os.path.exists(bundle["thumbnail"]):
             pixmap = QPixmap(str(bundle["thumbnail"]))
             if not pixmap.isNull():
-                self.panel.image_preview_canvas.setPixmap(pixmap.scaled(
-                    self.panel.image_preview_canvas.width() if self.panel.image_preview_canvas.width() > 50 else 220,
-                    140, Qt.KeepAspectRatio, Qt.SmoothTransformation
-                ))
+                self.panel.image_preview_canvas.setPixmap(pixmap)
+
 
     def handle_upload_submission(self):
         folder_path = self.panel.path_input.text()

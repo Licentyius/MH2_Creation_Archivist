@@ -37,13 +37,18 @@ class _StandaloneEnv:
         self.path_userdata = get_windows_mh2_userdata()
         self.basename = "hm08"
         self.auto_pbr = True
+        self.osindex = 0 if os.name == "nt" else 1
+        self.basefolders = [
+            "clothes", "hair", "eyes", "eyebrows", "eyelashes",
+            "teeth", "tongue", "proxy", "rigs", "expressions", "animations"
+        ]
 
     def logLine(self, level, msg):
         print(f"[MH2 Studio] {msg}")
 
 
-class _StandaloneMainWindow(QMainWindow):
-    def syncRepositories(self):
+class _StandaloneMainWindow(_StandaloneMainWindow if False else QMainWindow):
+    def syncRepositories(self, force=False):
         pass
 
 
@@ -54,6 +59,9 @@ class _StandaloneBaseClass:
             "parentmesh": "hm08" if mesh_name == "fantasy" else None
         }
 
+    def detachAssetByName(self, path):
+        pass
+
 
 class _StandaloneGlob:
     def __init__(self, main_win):
@@ -62,7 +70,9 @@ class _StandaloneGlob:
         self.MainWindow = main_win
         self.pluginRepo = {}
         self.openGLBlock = False
+        self.openGLWindow = None
         self.lastdownload = ""
+
 
 class BulkThumbSyncWorker(QThread):
     progress = Signal(int, str)
@@ -192,7 +202,6 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
         btn_pt.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(pt_main_page)))
         top_bar.addWidget(btn_pt)
 
-
         layout.addLayout(top_bar)
 
         # Unified Archive + Creator + 3D Multi-View Suite
@@ -205,12 +214,40 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
         top_bar.addWidget(self.theme_bar)
         self.theme_mgr.apply()
 
+        from PySide6.QtWidgets import QMenu
+        btn_credits = QPushButton("Credits & License ▾")
+        credits_menu = QMenu(btn_credits)
+        credits_menu.addAction("About & Studio Credits...", self._show_credits_dialog)
+        credits_menu.addSeparator()
+        agpl_url = "https://" + "/".join(["github.com", "Makehuman-2", "MH2_Asset_repository_AGPL", "blob", "main", "LICENSE"])
+        credits_menu.addAction("View AGPL-3.0 License (GitHub)", lambda: QDesktopServices.openUrl(QUrl(agpl_url)))
+        btn_credits.setMenu(credits_menu)
+        top_bar.addWidget(btn_credits)
+
+    def _show_credits_dialog(self):
+        agpl_link = "/".join(["https:/", "github.com", "Makehuman-2", "Official_MH2_Upcoming_tba_Release", "blob", "caring_sharing", "LICENSE.txt"])
+        QMessageBox.information(
+            self,
+            "MakeHuman 2 — Creation Archivist Credits & License",
+            "<h3>MakeHuman 2 — Creation Archivist &amp; Asset Studio</h3>"
+            "<p><b>Lead Architecture, UI Theme &amp; Tools:</b> Elvaerwyn_MH2 (Licentyius)</p>"
+            "<p><b>MakeHuman 2 Core &amp; Material Architecture:</b> black-punkduck &amp; MakeHuman 2 Team</p>"
+            "<p><b>Community Asset Archives:</b> MakeHuman Community Contributors (CC0, CC-BY, AGPL-3.0)</p>"
+            f"<p><b>Software License:</b> GNU AGPL-3.0<br>"
+            f"<a href='{agpl_link}' style='color:#f69038;'>{agpl_link}</a></p>"
+        )
+
+
     def _on_mesh_changed(self, mesh_name):
         self.mh_glob.env.basename = mesh_name
         self.mh_glob.baseClass = _StandaloneBaseClass(mesh_name)
         self.studio.archive_panel.fetch_remote_manifest()
         if hasattr(self.studio, "vault_downloader"):
             self.studio.vault_downloader._load_cached_lists()
+        if hasattr(self.studio, "purger_ctrl"):
+            self.studio.purger_ctrl.sync_installed_to_cart()
+        if hasattr(self.studio, "material_maker"):
+            self.studio.material_maker.sync_materials_from_disk()
 
     def _convert_folder_to_pbr(self):
         from auto_mhmat_fixer2 import convert_folder_mhmats_to_pbr
@@ -261,6 +298,12 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
         os.makedirs(cr.creator_root_folder, exist_ok=True)
         self.studio.creator_panel.path_input.setText(cr.creator_root_folder)
         cr.refresh_local_file_index(cr.creator_root_folder, manual_refresh=True, auto_detect=True)
+
+        # Sync Asset Purger & Material Maker inventories to the new storage folder
+        if hasattr(self.studio, "purger_ctrl"):
+            self.studio.purger_ctrl.sync_installed_to_cart()
+        if hasattr(self.studio, "material_maker"):
+            self.studio.material_maker.sync_materials_from_disk()
 
         # 2. Sync <new_path>/themes/theme.ini when storage mode changes
         self.theme_mgr._ensure_ini()

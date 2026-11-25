@@ -1,5 +1,5 @@
 """
-MakeHuman 2 3D & Multi-View Mesh Inspector (Software 3D + Texture + Body Mannequin Engine in one)
+MakeHuman 2 3D & Multi-View Mesh Inspector V1.1 (Software 3D + Texture + Body Mannequin Engine in one)
 Contributed to MH2 Community from Elvaerwyn_MH2 2026
 """
 import os
@@ -647,12 +647,20 @@ class MH2Mesh3DInspector(QWidget):
 
         # Row 4: Studio Lighting Slider
         light_bar = QHBoxLayout()
-        light_bar.addWidget(QLabel("Studio Light:"))
+        lbl_light = QLabel("☀ Studio Light:")
+        lbl_light.setStyleSheet("font-size: 13px; font-weight: bold;")
+        light_bar.addWidget(lbl_light)
+
         self.light_slider = QSlider(Qt.Horizontal)
         self.light_slider.setRange(50, 220)
         self.light_slider.setValue(125)
+        self.light_slider.setMinimumHeight(24)
         self.light_slider.valueChanged.connect(self._on_light_changed)
         light_bar.addWidget(self.light_slider, 1)
+
+        self.lbl_light_val = QLabel("125%")
+        self.lbl_light_val.setStyleSheet("font-size: 13px; font-weight: bold; min-width: 42px;")
+        light_bar.addWidget(self.lbl_light_val)
         layout.addLayout(light_bar)
 
         # Single Interactive Viewport
@@ -956,6 +964,8 @@ class MH2Mesh3DInspector(QWidget):
         self.status_lbl.setText(msg)
 
     def _on_light_changed(self, val):
+        if hasattr(self, "lbl_light_val"):
+            self.lbl_light_val.setText(f"{val}%")
         gain = val / 100.0
         for vp in (self.main_view, self.v_front, self.v_side, self.v_back, self.v_3q):
             vp.light_gain = gain

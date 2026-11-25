@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Vault Downloader
+MakeHuman 2 Vault Downloader V1.1
 Contributed to the MH2 Community by Elvaerwyn_MH2 2026
 """
 
@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 from mh2_3d_viewer import MH2Mesh3DInspector
 from mh2_standalone_core import StandaloneThumb, get_windows_mh2_userdata
+from mh2_standalone_core import StandaloneThumb, get_windows_mh2_userdata, PanZoomImageViewer
 
 
 def _fetch_bytes(url, timeout=25):
@@ -329,7 +330,9 @@ class MH2VaultDownloaderTab(QWidget):
         c2_lay = QVBoxLayout(col2)
 
         self.preview_tabs = QTabWidget()
-        self.thumb_preview = QLabel("Select an asset from the list")
+        self.thumb_preview = PanZoomImageViewer("Select an asset from the list\n(Wheel = Zoom • Drag = Pan • Double-Click = Reset)", min_height=180)
+        self.preview_tabs.addTab(self.thumb_preview, "2D Thumbnail")
+
         self.thumb_preview.setMinimumHeight(180)
         self.thumb_preview.setAlignment(Qt.AlignCenter)
         self.thumb_preview.setStyleSheet("background-color: #161616; color: #888888; border: 1px solid #3A3A3A;")

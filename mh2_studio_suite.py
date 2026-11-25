@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Studio_Suite.py 
+MakeHuman 2 Studio_Suite.py (logic routing)
 Contributed to the MH2 Community by Elvaerwyn_MH2 2026
 """
 
@@ -16,6 +16,9 @@ from mh2_3d_viewer import MH2Mesh3DInspector
 from mh2_archive import MH2AssetBrowserPanel, MH2AssetCard
 from mh2_creator import MH2CreatorPortalPanel
 from mh2_vault_downloader import MH2VaultDownloaderTab
+from mh2_material_maker import MH2MaterialMakerTab
+from mh2_asset_purge import MH2AssetPurgerPanel
+
 
 
 class MH2UnifiedStudioWidget(QWidget):
@@ -115,6 +118,18 @@ class MH2UnifiedStudioWidget(QWidget):
         # TAB 2b: Legacy Vault Single-Asset & Batch Cart Downloader (downloads.py features)
         self.vault_downloader = MH2VaultDownloaderTab(self.mh_glob)
         self.tabs.addTab(self.vault_downloader, "Vault & Cart Downloader")
+
+        self.material_maker = MH2MaterialMakerTab(self.mh_glob)
+        self.tabs.addTab(self.material_maker, "Material Maker")
+        # ---------------------------------------------------------
+        # TAB 2c: Asset Inventory & Recycle Bin Purger
+        # ---------------------------------------------------------
+        self.purger_ctrl = MH2AssetPurgerPanel(None, self.mh_glob, "mh2_asset_purger_embedded")
+        self.purger_panel = self.purger_ctrl.Panel(self.purger_ctrl)
+        self.purger_ctrl.panel = self.purger_panel
+        self.purger_ctrl.sync_installed_to_cart()
+        self.tabs.addTab(self.purger_panel, "Asset Purger")
+
 
         creator_container = QWidget()
         c_layout = QVBoxLayout(creator_container)

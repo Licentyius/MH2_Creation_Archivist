@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Standalone Core Engine (Does the same as downloads.py & core.importfiles)
+MakeHuman 2 Standalone Core Engine v1.1 (Does the same as downloads.py & core.importfiles)
 Contributed to the MH2 Community by Elvaerwyn_MH2 2026 
 """
 import os
@@ -153,3 +153,105 @@ def get_windows_mh2_userdata(mode=None, custom_path=None):
         os.makedirs(os.path.join(base, sub), exist_ok=True)
     return base
 
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QScrollArea, QLabel
+
+
+class PanZoomImageViewer(QScrollArea):
+    """Interactive 2D preview canvas: Mouse Wheel = Zoom, Left-Drag = Pan, Double-Click = Reset Fit."""
+    def __init__(self, placeholder_text="No preview available", min_height=150):
+        super().__init__()
+        self._orig_pixmap = None
+        self._zoom = 1.0
+        self._drag_pos = None
+
+        self.setWidgetResizable(False)
+        self.setAlignment(Qt.AlignCenter)
+        self.setMinimumHeight(min_height)
+        self.setStyleSheet("background-color: #151515; border: 1px solid #3A3A3A; border-radius: 4px;")
+
+        self.img_label = QLabel(placeholder_text)
+        self.img_label.setAlignment(Qt.AlignCenter)
+        self.img_label.setWordWrap(True)
+        self.img_label.setStyleSheet("color: #888888; background: transparent; border: none; padding: 8px;")
+        self.setWidget(self.img_label)
+
+    def setPixmap(self, pixmap):
+        if pixmap and not pixmap.isNull():
+            self._orig_pixmap = pixmap
+            self._zoom = 1.0
+            self.setCursor(Qt.OpenHandCursor)
+            self._apply_zoom(fit_window=True)
+        else:
+            self.clear()
+
+    def clear(self):
+        self._orig_pixmap = None
+        self._zoom = 1.0
+        self.setCursor(Qt.ArrowCursor)
+        self.img_label.clear()
+        self.img_label.resize(max(self.viewport().width(), 160), max(self.viewport().height(), 120))
+
+    def setText(self, text):
+        self._orig_pixmap = None
+        self.setCursor(Qt.ArrowCursor)
+        self.img_label.setText(text)
+        self.img_label.resize(max(self.viewport().width() - 8, 160), max(self.viewport().height() - 8, 120))
+
+    def _apply_zoom(self, fit_window=False):
+        if not self._orig_pixmap or self._orig_pixmap.isNull():
+            return
+        vw = max(self.viewport().width() - 10, 120)
+        vh = max(self.viewport().height() - 10, 120)
+        if fit_window:
+            base_pix = self._orig_pixmap.scaled(vw, vh, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self._zoom = base_pix.width() / max(float(self._orig_pixmap.width()), 1.0)
+        else:
+            target_w = max(24, int(self._orig_pixmap.width() * self._zoom))
+            target_h = max(24, int(self._orig_pixmap.height() * self._zoom))
+            base_pix = self._orig_pixmap.scaled(target_w, target_h, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.img_label.setPixmap(base_pix)
+        self.img_label.resize(base_pix.size())
+
+    def wheelEvent(self, event):
+        if self._orig_pixmap and not self._orig_pixmap.isNull():
+            factor = 1.18 if event.angleDelta().y() > 0 else 0.84
+            self._zoom = max(0.15, min(8.0, self._zoom * factor))
+            self._apply_zoom(fit_window=False)
+            event.accept()
+        else:
+            super().wheelEvent(event)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton and self._orig_pixmap:
+            self._drag_pos = event.position()
+            self.setCursor(Qt.ClosedHandCursor)
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._drag_pos is not None:
+            delta = event.position() - self._drag_pos
+            self._drag_pos = event.position()
+            self.horizontalScrollBar().setValue(int(self.horizontalScrollBar().value() - delta.x()))
+            self.verticalScrollBar().setValue(int(self.verticalScrollBar().value() - delta.y()))
+            event.accept()
+        else:
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._drag_pos is not None:
+            self._drag_pos = None
+            self.setCursor(Qt.OpenHandCursor if self._orig_pixmap else Qt.ArrowCursor)
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        if self._orig_pixmap:
+            self._apply_zoom(fit_window=True)
+            event.accept()
+        else:
+            super().mouseDoubleClickEvent(event)
