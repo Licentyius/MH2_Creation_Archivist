@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Standalone Community Studio Suite (Archive + Creator + 3D Multi-View + Downloader Tools)
+MakeHuman 2 Standalone Community Studio Suite V1.3 (Archive + Creator + 3D Multi-View + Downloader Tools)
 Hybrid of all of Elvs Creations built into one Suite. 
 Contributed by Elvaerwyn_MH2 2026
 """
@@ -20,7 +20,8 @@ from mh2_standalone_core import (
     inject_standalone_mh2_shims,
     get_windows_mh2_userdata,
     get_app_folder,
-    StandaloneThumb
+    StandaloneThumb,
+    open_external_link
 )
 
 
@@ -142,7 +143,7 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
 
         top_bar.addWidget(QLabel("  Target Mesh:"))
         self.mesh_combo = QComboBox()
-        self.mesh_combo.addItems(["hm08", "fantasy"])
+        self.mesh_combo.addItems(["hm08", "fantasy", "mh2bot", "Custom Mesh..."])
         self.mesh_combo.setToolTip("Select target MakeHuman 2 base mesh folder for asset installation")
         self.mesh_combo.currentTextChanged.connect(self._on_mesh_changed)
         top_bar.addWidget(self.mesh_combo)
@@ -195,11 +196,11 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
         pt_main_page = "https://www.patreon.com/cw/Makehuman2"
 
         btn_gh = QPushButton("MakeHuman 2 Org")
-        btn_gh.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(gh_org_home)))
+        btn_gh.clicked.connect(lambda: open_external_link(gh_org_home))
         top_bar.addWidget(btn_gh)
 
         btn_pt = QPushButton("MakeHuman 2 Patreon")
-        btn_pt.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(pt_main_page)))
+        btn_pt.clicked.connect(lambda: open_external_link(pt_main_page))
         top_bar.addWidget(btn_pt)
 
         layout.addLayout(top_bar)
@@ -220,12 +221,14 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
         credits_menu.addAction("About & Studio Credits...", self._show_credits_dialog)
         credits_menu.addSeparator()
         agpl_url = "https://" + "/".join(["github.com", "Makehuman-2", "MH2_Asset_repository_AGPL", "blob", "main", "LICENSE"])
-        credits_menu.addAction("View AGPL-3.0 License (GitHub)", lambda: QDesktopServices.openUrl(QUrl(agpl_url)))
+        agpl_repo_url = "https://" + "/".join(["github.com", "Makehuman-2", "MH2_Asset_repository_AGPL"])
+        credits_menu.addAction("View AGPL-3.0 License (GitHub)", lambda: open_external_link(agpl_url))
+        credits_menu.addAction("MH2 AGPL Asset Repository", lambda: open_external_link(agpl_repo_url))
         btn_credits.setMenu(credits_menu)
         top_bar.addWidget(btn_credits)
 
     def _show_credits_dialog(self):
-        agpl_link = "/".join(["https:/", "github.com", "Makehuman-2", "Official_MH2_Upcoming_tba_Release", "blob", "caring_sharing", "LICENSE.txt"])
+        agpl_link = "https://" + "/".join(["github.com", "Makehuman-2", "MH2_Asset_repository_AGPL", "blob", "main", "LICENSE"])
         QMessageBox.information(
             self,
             "MakeHuman 2 — Creation Archivist Credits & License",
@@ -237,8 +240,25 @@ class MH2StandaloneWindow(_StandaloneMainWindow):
             f"<a href='{agpl_link}' style='color:#f69038;'>{agpl_link}</a></p>"
         )
 
-
     def _on_mesh_changed(self, mesh_name):
+        if mesh_name == "Custom Mesh...":
+            from PySide6.QtWidgets import QInputDialog
+            custom_name, ok = QInputDialog.getText(
+                self, "Custom Target Base Mesh", "Enter custom base mesh folder name (e.g., anime, toon):"
+            )
+            clean = "".join(c if (c.isalnum() or c in "_-") else "_" for c in custom_name).strip("_").lower()
+            if not ok or not clean:
+                self.mesh_combo.blockSignals(True)
+                self.mesh_combo.setCurrentText(self.mh_glob.env.basename)
+                self.mesh_combo.blockSignals(False)
+                return
+            self.mesh_combo.blockSignals(True)
+            if self.mesh_combo.findText(clean) == -1:
+                self.mesh_combo.insertItem(self.mesh_combo.count() - 1, clean)
+            self.mesh_combo.setCurrentText(clean)
+            self.mesh_combo.blockSignals(False)
+            mesh_name = clean
+
         self.mh_glob.env.basename = mesh_name
         self.mh_glob.baseClass = _StandaloneBaseClass(mesh_name)
         self.studio.archive_panel.fetch_remote_manifest()

@@ -531,12 +531,11 @@ class MH2AssetBrowserPanel(QWidget):
         else:
             parentmesh = self.mh_glob.baseClass.baseInfo.get("parentmesh")
             allowprefix = ["common", "legacy", self.mh_glob.env.basename]
-            if self.mh_glob.env.basename == "fantasy":
-                allowprefix.extend(["hm08", "common", "legacy"])
-                
+            if self.mh_glob.env.basename in ("fantasy", "mh2bot"):
+                allowprefix.append("hm08")
+               
         if parentmesh:
             allowprefix.append(parentmesh)
-
                 
         active_repo = self.repo_dropdown.currentText()
         repo_path = self.repositories.get(active_repo, "Makehuman-2/MH2_Asset_Repository_CC-By").strip()
@@ -1063,12 +1062,15 @@ class MH2AssetBrowserPanel(QWidget):
                     exts_in_dir = {os.path.splitext(f)[1].lower() for f in files}
 
                     # Respect "base" from community_packs.json first, then path hints
-                    if manifest_base in ["hm08", "fantasy"]:
+                    if manifest_base:
                         active_mesh = manifest_base
                     elif "fantasy" in rel_lower or "fantasy" in zip_file.lower():
                         active_mesh = "fantasy"
+                    elif "mh2bot" in rel_lower or "mh2bot" in zip_file.lower():
+                        active_mesh = "mh2bot"
                     else:
                         active_mesh = default_mesh
+
 
                     # Respect "type" from community_packs.json
                     if len(allowed_types) == 1:

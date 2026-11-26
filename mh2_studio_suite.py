@@ -18,7 +18,7 @@ from mh2_creator import MH2CreatorPortalPanel
 from mh2_vault_downloader import MH2VaultDownloaderTab
 from mh2_material_maker import MH2MaterialMakerTab
 from mh2_asset_purge import MH2AssetPurgerPanel
-
+from mh2_standalone_core import open_external_link
 
 
 class MH2UnifiedStudioWidget(QWidget):
@@ -46,13 +46,14 @@ class MH2UnifiedStudioWidget(QWidget):
 
         btn_gh = QPushButton("GitHub Repositories")
         btn_gh.setStyleSheet("padding: 3px 8px;")
-        btn_gh.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(gh_org)))
+        btn_gh.clicked.connect(lambda: open_external_link(gh_org))
         link_bar.addWidget(btn_gh)
 
         btn_pt = QPushButton("Patreon Free Legacy Full Zips")
         btn_pt.setStyleSheet("padding: 3px 8px;")
-        btn_pt.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(pt_page)))
+        btn_pt.clicked.connect(lambda: open_external_link(pt_page))
         link_bar.addWidget(btn_pt)
+
         link_bar.addStretch()
         root.addLayout(link_bar)
 

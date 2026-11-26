@@ -567,7 +567,7 @@ class MH2VaultDownloaderTab(QWidget):
 
             rec_base = str(rec.get("base", rec.get("basemesh", ""))).lower().strip()
             if rec_base and rec_base not in ("*", "common", active_mesh):
-                if not (active_mesh == "fantasy" and rec_base == "hm08"):
+                if not (active_mesh in ("fantasy", "mh2bot") and rec_base == "hm08"):
                     continue
 
             title = str(rec.get("title", rec.get("name", key)))

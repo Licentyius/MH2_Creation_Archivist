@@ -263,10 +263,11 @@ class MH2CreatorPortalPanel:
             vbox_base = QVBoxLayout()
             vbox_base.addWidget(QLabel("Target Base Mesh Target:"))
             self.base_dropdown = QComboBox()
-            self.base_dropdown.addItems(["hm08", "fantasy", "common"])
+            self.base_dropdown.setEditable(True)
+            self.base_dropdown.addItems(["hm08", "fantasy", "mh2bot", "common"])
             vbox_base.addWidget(self.base_dropdown)
             row_dropdowns.addLayout(vbox_base, 1)
-            
+           
             meta_layout.addLayout(row_dropdowns)
             
             meta_layout.addWidget(QLabel("License Type Designation:"))
@@ -565,7 +566,6 @@ class MH2CreatorPortalPanel:
                 self.panel.file_list_display.addItem(os.path.basename(f_path))
 
 
-
         # Only auto-detect category/title when opening a new folder (so manual dropdown edits stick on Sync)
         if auto_detect and bundle["primary"] and os.path.exists(bundle["primary"]):
             prim_ext = os.path.splitext(bundle["primary"])[-1].lower()
@@ -589,10 +589,12 @@ class MH2CreatorPortalPanel:
                     for line in f:
                         line_clean = line.strip().lower()
                         if line_clean.startswith("basemesh"):
-                            if "hm08" in line_clean:
-                                self.panel.base_dropdown.setCurrentText("hm08")
-                            elif "fantasy" in line_clean:
-                                self.panel.base_dropdown.setCurrentText("fantasy")
+                            parts = line_clean.split(None, 1)
+                            if len(parts) > 1:
+                                bm = parts[1].strip()
+                                if self.panel.base_dropdown.findText(bm) == -1:
+                                    self.panel.base_dropdown.addItem(bm)
+                                self.panel.base_dropdown.setCurrentText(bm)
                         if line_clean.startswith("name") and len(line_clean.split()) > 1:
                             raw_name = line.strip().split(None, 1)[-1]
                             self.panel.title_input.setText(raw_name)
@@ -601,6 +603,7 @@ class MH2CreatorPortalPanel:
             except Exception:
                 self.panel.title_input.blockSignals(False)
                 self.panel.base_dropdown.blockSignals(False)
+
 
         selected_category_label = self.panel.category_dropdown.currentText()
         system_type_slug = CATEGORY_MAP.get(selected_category_label, "clothes")

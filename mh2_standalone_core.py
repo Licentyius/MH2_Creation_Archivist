@@ -1,5 +1,5 @@
 """
-MakeHuman 2 Standalone Core Engine v1.1 (Does the same as downloads.py & core.importfiles)
+MakeHuman 2 Standalone Core Engine v1.2 (Does the same as downloads.py & core.importfiles)
 Contributed to the MH2 Community by Elvaerwyn_MH2 2026 
 """
 import os
@@ -9,6 +9,7 @@ import shutil
 import zipfile
 import tempfile
 import types
+import webbrowser
 from PySide6.QtGui import QImage
 
 
@@ -255,3 +256,34 @@ class PanZoomImageViewer(QScrollArea):
             event.accept()
         else:
             super().mouseDoubleClickEvent(event)
+
+import subprocess
+import webbrowser
+
+
+def open_external_link(url, new_window=True):
+    """Opens a URL in a separate browser window on Windows, falling back to webbrowser."""
+    clean = str(url).strip()
+    if not clean:
+        return
+    if os.name == "nt" and new_window:
+        try:
+            import winreg
+            with winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice"
+            ) as k:
+                prog_id, _ = winreg.QueryValueEx(k, "ProgId")
+            with winreg.OpenKey(
+                winreg.HKEY_CLASSES_ROOT,
+                rf"{prog_id}\shell\open\command"
+            ) as cmd_k:
+                raw_cmd, _ = winreg.QueryValueEx(cmd_k, "")
+            exe = raw_cmd.split('"')[1] if raw_cmd.startswith('"') else raw_cmd.split()[0]
+            if os.path.exists(exe):
+                flag = "-new-window" if "firefox" in exe.lower() else "--new-window"
+                subprocess.Popen([exe, flag, clean])
+                return
+        except Exception:
+            pass
+    webbrowser.open(clean, new=1 if new_window else 2)
